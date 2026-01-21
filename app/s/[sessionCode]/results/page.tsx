@@ -34,6 +34,11 @@ export default function ResultsPage() {
       const shortlistRes = await fetch(`/api/shortlist?code=${sessionCode}`);
       const shortlistData = await shortlistRes.json();
 
+      // Récupérer les mots
+      const wordsRes = await fetch(`/api/words?code=${sessionCode}`);
+      const wordsData = await wordsRes.json();
+      const wordsCloud = wordsRes.ok ? wordsData.words || [] : [];
+
       if (shortlistRes.ok && shortlistData.shortlist) {
         // Trier par votes R2 puis R1
         const sorted = [...shortlistData.shortlist].sort((a, b) => {
@@ -42,12 +47,12 @@ export default function ResultsPage() {
           return (b.votesR1 || 0) - (a.votesR1 || 0);
         });
 
-        if (sorted.length >= 3) {
+        if (sorted.length >= 1) {
           setResults({
             top1: sorted[0],
-            alt1: sorted[1],
-            alt2: sorted[2],
-            wordsCloud: [],
+            alt1: sorted[1] || null,
+            alt2: sorted[2] || null,
+            wordsCloud: wordsCloud,
             allProposals: [],
             sessionInfo: {
               code: sessionCode,
@@ -60,14 +65,6 @@ export default function ResultsPage() {
             completedAt: Date.now(),
           });
         }
-      }
-
-      // Récupérer les mots
-      const wordsRes = await fetch(`/api/words?code=${sessionCode}`);
-      const wordsData = await wordsRes.json();
-
-      if (wordsRes.ok && results) {
-        setResults(prev => prev ? { ...prev, wordsCloud: wordsData.words } : null);
       }
 
       setLoading(false);
@@ -147,49 +144,55 @@ export default function ResultsPage() {
         </div>
 
         {/* Alternatives */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {/* ALT 1 */}
-          <div className="card border-2 border-gray-300 bg-gray-50">
-            <div className="text-center">
-              <div className="text-2xl mb-1">🥈</div>
-              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                Alternative 1
+        {(results.alt1 || results.alt2) && (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {/* ALT 1 */}
+            {results.alt1 && (
+              <div className="card border-2 border-gray-300 bg-gray-50">
+                <div className="text-center">
+                  <div className="text-2xl mb-1">🥈</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                    Alternative 1
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-1">
+                    {results.alt1.name}
+                  </h3>
+                  {results.alt1.finalSubtitle && (
+                    <p className="text-xs italic text-gray-600">
+                      {results.alt1.finalSubtitle}
+                    </p>
+                  )}
+                  <div className="text-xs text-gray-500 mt-2">
+                    {results.alt1.votesR2} / {results.alt1.votesR1} votes
+                  </div>
+                </div>
               </div>
-              <h3 className="font-bold text-gray-900 mb-1">
-                {results.alt1.name}
-              </h3>
-              {results.alt1.finalSubtitle && (
-                <p className="text-xs italic text-gray-600">
-                  {results.alt1.finalSubtitle}
-                </p>
-              )}
-              <div className="text-xs text-gray-500 mt-2">
-                {results.alt1.votesR2} / {results.alt1.votesR1} votes
-              </div>
-            </div>
-          </div>
+            )}
 
-          {/* ALT 2 */}
-          <div className="card border-2 border-gray-300 bg-gray-50">
-            <div className="text-center">
-              <div className="text-2xl mb-1">🥉</div>
-              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                Alternative 2
+            {/* ALT 2 */}
+            {results.alt2 && (
+              <div className="card border-2 border-gray-300 bg-gray-50">
+                <div className="text-center">
+                  <div className="text-2xl mb-1">🥉</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                    Alternative 2
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-1">
+                    {results.alt2.name}
+                  </h3>
+                  {results.alt2.finalSubtitle && (
+                    <p className="text-xs italic text-gray-600">
+                      {results.alt2.finalSubtitle}
+                    </p>
+                  )}
+                  <div className="text-xs text-gray-500 mt-2">
+                    {results.alt2.votesR2} / {results.alt2.votesR1} votes
+                  </div>
+                </div>
               </div>
-              <h3 className="font-bold text-gray-900 mb-1">
-                {results.alt2.name}
-              </h3>
-              {results.alt2.finalSubtitle && (
-                <p className="text-xs italic text-gray-600">
-                  {results.alt2.finalSubtitle}
-                </p>
-              )}
-              <div className="text-xs text-gray-500 mt-2">
-                {results.alt2.votesR2} / {results.alt2.votesR1} votes
-              </div>
-            </div>
+            )}
           </div>
-        </div>
+        )}
 
         {results.wordsCloud && results.wordsCloud.length > 0 && (
           <div className="card">

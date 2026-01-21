@@ -93,8 +93,8 @@ export const getRedisKeys = (sessionCode: string) => ({
 
 export interface FinalResults {
   top1: ShortlistItem;
-  alt1: ShortlistItem;
-  alt2: ShortlistItem;
+  alt1: ShortlistItem | null;
+  alt2: ShortlistItem | null;
   wordsCloud: Word[];
   allProposals: Proposal[];
   sessionInfo: Session;
